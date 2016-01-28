@@ -72,6 +72,7 @@ Vagrant.configure(2) do |config|
         raise Vagrant::Errors::VagrantError.new, NO_VAGRANT_REGISTRATION_ERROR
       end
 
+      cdk.registration.skip = true
       cdk.registration.username    = ENV.has_key?('SUB_USERNAME') ? "#{ENV['SUB_USERNAME']}" : nil
       cdk.registration.password    = ENV.has_key?('SUB_PASSWORD') ? "#{ENV['SUB_PASSWORD']}" : nil
       cdk.registration.auto_attach = true

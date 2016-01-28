@@ -154,7 +154,8 @@ if [ ! -f $master_config ]; then
   sed -i.orig -e "s/\(.*subdomain:\).*/\1 $2/" ${master_config} \
     -e "s/\(.*masterPublicURL:\).*/\1 https:\/\/$1:8443/g" \
     -e "s/\(.*publicURL:\).*/\1 https:\/\/$1:8443\/console\//g" \
-    -e "s/\(.*assetPublicURL:\).*/\1 https:\/\/$1:8443\/console\//g"
+    -e "s/\(.*assetPublicURL:\).*/\1 https:\/\/$1:8443\/console\//g" \
+    -e "/assetConfig:/a\ \ metricsPublicURL: https://hawkular-metrics.$2/hawkular/metrics"
 
   # Remove the container
   rm_ose_container
@@ -250,4 +251,27 @@ if [ ! -f ${ORIGIN_DIR}/configured.user ]; then
   echo "[INFO] Creating 'test-admin' user and 'test' project ..."
   oadm policy add-role-to-user view test-admin --config=${OPENSHIFT_DIR}/admin.kubeconfig
   sudo touch ${ORIGIN_DIR}/configured.user
+fi
+
+# Configure metrics
+# https://github.com/openshift/origin-metrics
+# https://docs.openshift.com/enterprise/latest/install_config/cluster_metrics.html#configuring-openshift-metrics
+if [ ! -f ${ORIGIN_DIR}/configured.metrics ]; then
+  # Setup metrics in openshift-infra
+  oc project openshift-infra
+  oc create -f - <<API
+  apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: metrics-deployer
+  secrets:
+  - name: metrics-deployer
+API
+  oadm policy add-role-to-user edit system:serviceaccount:openshift-infra:metrics-deployer
+  oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:openshift-infra:heapster
+  oc secrets new metrics-deployer nothing=/dev/null
+  oc process -f https://raw.githubusercontent.com/openshift/openshift-ansible/master/roles/openshift_examples/files/examples/v1.1/infrastructure-templates/enterprise/metrics-deployer.yaml \
+   -v HAWKULAR_METRICS_HOSTNAME=hawkular-metrics.$1,USE_PERSISTENT_STORAGE=false,MASTER_URL=https://10.0.2.15:8443 | oc create -f -
+
+  touch ${ORIGIN_DIR}/configured.metrics
 fi
