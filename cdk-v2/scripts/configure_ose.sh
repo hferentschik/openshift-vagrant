@@ -10,8 +10,8 @@ set -o nounset
 #set -o xtrace
 
 # The name and version of the OSE image we use
-export OSE_IMAGE_NAME=openshift3/ose
-export OSE_IMAGE_VERSION=v3.1.0.4
+export OSE_IMAGE_NAME=openshift/origin
+export OSE_IMAGE_VERSION=v1.1.3
 
 # The Docker registry from where we pull the OpenShift Enterprise Docker images
 export OPENSHIFT_IMAGE_REGISTRY="rcm-img-docker01.build.eng.bos.redhat.com:5001"
@@ -110,7 +110,7 @@ cache_image() {
 ########################################################################
 # Pre-pull some images in order to speed up the OpenShift out of the box experience
 # See also https://github.com/projectatomic/adb-atomic-developer-bundle/issues/160
-cache_image openshift3/ose-sti-builder:${OSE_IMAGE_VERSION}
+#cache_image openshift3/ose-sti-builder:${OSE_IMAGE_VERSION}
 
 # Copy OpenShift CLI tools to the VM
 binaries=(oc oadm)
